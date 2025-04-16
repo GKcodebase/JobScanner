@@ -208,22 +208,37 @@ job-scanner-plugin/
 
 ## Challenges and Considerations
 
-- **Extraction Accuracy**: Varied job listing formats may challenge Gemini API accuracy.
-  - **Mitigation**: Allow manual editing of extracted details.
-- **Website Compatibility**: Dynamic content or anti-scraping measures may hinder extraction.
-  - **Mitigation**: Test on major platforms and refine logic.
-- **PDF Handling**: Image-based PDFs or odd fonts may fail text extraction.
-  - **Mitigation**: Recommend text-based PDFs.
-- **API Usage**: Frequent calls to Gemini API (especially with match and ATS analysis) may hit limits or incur costs.
-  - **Mitigation**: Note API charges in settings; optimize calls.
-- **Firebase Usage**: Analytics and Firestore may incur costs with high usage.
-  - **Mitigation**: Use lightweight data structures; monitor quotas in Firebase Console.
-- **Security**: Local storage of API keys, resumes, and Firebase tokens poses risks.
-  - **Mitigation**: Use Chrome security policies; encrypt sensitive data; advise key privacy.
-- **Performance**: Large texts, PDFs, or frequent Firebase writes may slow processing.
-  - **Mitigation**: Implement async operations, caching, and loading indicators.
-- **Crash Reporting**: Crashlytics may miss some extension-specific errors due to Chrome’s sandboxing.
-  - **Mitigation**: Add custom error logging to complement Crashlytics.
+-   **Extraction Accuracy**: Varied job listing formats may challenge Gemini API accuracy.
+    -   **Mitigation**: Allow manual editing of extracted details.
+-   **Website Compatibility**: Dynamic content or anti-scraping measures may hinder extraction.
+    -   **Mitigation**: Test on major platforms and refine logic.
+    -   **Suggestion**: Consider using more advanced techniques for content extraction if basic `document.body.innerText` proves insufficient. This might involve looking into the DOM structure and targeting specific HTML elements.
+-   **PDF Handling**: Image-based PDFs or odd fonts may fail text extraction.
+    -   **Mitigation**: Recommend text-based PDFs.
+    -   **Suggestion:** Add error handling and user feedback for failed extractions. Offer alternative input methods (e.g., pasting text).
+-   **API Usage Costs and Limits**:
+    -   Frequent calls to Gemini API (especially with match and ATS analysis) may hit limits or incur costs.
+    -   **Mitigation**:
+        -   Note API charges in settings; optimize calls.
+        -   **Caching:** Cache Gemini API results (e.g., extracted job details, ATS analysis) to reduce redundant calls.
+        -   **Rate Limiting:** Implement client-side rate limiting to avoid sending too many API calls in a short period.
+        -   **Batching:** If possible, group multiple requests together, if feasible given the Gemini API capabilities.
+-   **Firebase Usage**: Analytics and Firestore may incur costs with high usage.
+    -   **Mitigation**: Use lightweight data structures; monitor quotas in Firebase Console.
+-   **Security of Stored Data**:
+    -   Local storage of API keys, resumes, and Firebase tokens poses risks.
+    -   **Mitigation**: Use Chrome security policies; encrypt sensitive data; advise key privacy.
+    -   **Suggestion:** While Chrome security policies help, consider adding encryption for sensitive data stored in the Chrome `storage` API.
+-   **User Privacy**:
+    -   **Suggestion:** Be very transparent with users about what data is collected and how it's used. This should be reflected in a privacy policy and the UI. Also consider allowing users to export or delete their data.
+- **Handling multiple API keys**:
+   - **Suggestion:** Although not critical now, consider how you may handle more than 1 key for the same service in the future.
+- **Data Validation**:
+    - **Suggestion:** Implement strict input validation to prevent unexpected data formats from crashing the extension or corrupting data.
+-   **Performance**: Large texts, PDFs, or frequent Firebase writes may slow processing.
+    -   **Mitigation**: Implement async operations, caching, and loading indicators.
+-   **Crash Reporting**: Crashlytics may miss some extension-specific errors due to Chrome’s sandboxing.
+    -   **Mitigation**: Add custom error logging to complement Crashlytics.
 
 ---
 
