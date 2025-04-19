@@ -1,4 +1,4 @@
- # Job Scanner Plugin Technical Specification
+# Job Scanner Plugin Technical Specification
 
 ## Business Goal
 
@@ -38,22 +38,39 @@ This plugin aims to save time, personalize applications, and help users assess t
 
 ## UI Requirements
 
-- **Popup Interface**:
-  - **Scan Button**: Initiates scanning of the current webpage for job details.
-  - **Job Details Display**: Presents extracted details (e.g., job title, requirements, skills, compensation, sponsorship/clearance restrictions), with restrictions highlighted or flagged.
-  - **Analyze Match Button**: Triggers match analysis between the job details and the user’s resume.
-  - **Match Analysis Display**: Shows the match rate (e.g., 85%) and a breakdown of how qualifications align with job requirements.
-  - **Generate Button**: Starts the creation of a custom resume and cover letter.
-  - **Generated Documents Display**: Displays the generated resume and cover letter for review or download.
-  - **ATS Score Button**: Triggers ATS analysis of the stored resume, displaying a score and suggestions.
-  - **ATS Score Display**: Shows the ATS score (e.g., "ATS Score: 75/100") and a list of suggestions (e.g., "Add keywords like 'Python,' simplify section headers").
-  - **Settings Link**: Navigates to the settings page.
-  - **Login/Logout Button**: Prompts user to log in with Firebase-supported methods (email, Google, Apple) or log out, visible if not authenticated.
-- **Settings Page**:
-  - **Gemini API Key Input**: Text field for entering or updating the API key.
-  - **Model Selection**: Dropdown or text input to choose the Gemini AI model (if applicable).
-  - **Resume Upload**: File input for uploading or updating the resume PDF.
-  - **User Profile**: Displays logged-in user’s email (from Firebase Authentication) and option to manage account data (e.g., view usage summary, delete account).
+- **Popup Interface** (Small overlay):
+  - **Login/Logout Button**: Prompts user authentication
+  - **Scan Button**: Initiates scanning of the current webpage
+  - **Settings Link**: Opens settings popup
+  - **Status Indicator**: Shows current scanning/processing status
+
+- **Side Panel Interface** (Right-side panel):
+  - **Job Details Section**:
+    - Displays extracted details (title, requirements, skills)
+    - Shows restrictions and flags
+    - Match rate display with visual indicator
+  
+  - **Resume Analysis Section**:
+    - ATS Score with detailed breakdown
+    - Improvement suggestions
+    - Skills match visualization
+  
+  - **Document Generation Section**:
+    - Resume tailoring options
+    - Cover letter generation
+    - Download/export buttons
+
+- **Settings Popup**:
+  - **API Configuration**:
+    - Gemini API key input
+    - Model selection dropdown
+  - **Resume Management**:
+    - PDF upload/update
+    - Preview current resume
+  - **User Profile**:
+    - Email display
+    - Usage statistics
+    - Account management
 
 ---
 
@@ -150,6 +167,26 @@ job-scanner-plugin/
 8. **Crash Reporting**:
    - Any unhandled errors or crashes are captured by Firebase Crashlytics.
    - Reports are sent to the Firebase Console with user context (e.g., UID) and stack traces.
+
+---
+
+## Workflow Updates
+
+1. **Initial Interaction**:
+   - User clicks extension icon → Small popup opens
+   - Login prompt if not authenticated
+   - Scan button available after login
+
+2. **Scanning Process**:
+   - Click "Scan" in popup
+   - Side panel automatically opens
+   - Loading indicator shows progress
+   - Results displayed in side panel sections
+
+3. **Analysis View**:
+   - All detailed analysis shown in side panel
+   - Popup remains accessible for new scans
+   - Settings accessible from both popup and panel
 
 ---
 
