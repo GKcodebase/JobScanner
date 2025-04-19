@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Job Scanner</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../styles/shared.css">
   <link rel="stylesheet" href="popup.css">
   <style>
     .hidden { display: none; }
@@ -9,23 +11,35 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="user-info hidden">
-      <span id="userEmail"></span>
-      <button id="logoutButton">Logout</button>
+  <div class="header">
+    <!-- Auth Section -->
+    <div class="auth-section">
+      <!-- Show when logged out -->
+      <button id="loginButton" class="auth-button" title="Login with Google">
+        <i class="fab fa-google"></i>
+        <span>Sign in</span>
+      </button>
+      <!-- Show when logged in -->
+      <div id="userInfo" class="user-info hidden">
+        <div id="userAvatar" class="user-avatar"></div>
+        <span id="userEmail" class="user-email"></span>
+      </div>
     </div>
-    <button id="loginButton" class="hidden">Login with Google</button>
-    <button id="scanButton" class="hidden">Scan Job</button>
-    <div id="jobDetails" class="hidden">
-      <h3>Job Details</h3>
-      <div id="jobContent"></div>
-      <button id="analyzeMatch" class="secondary-btn">Analyze Match</button>
+    <!-- Actions Section -->
+    <div class="header-actions">
+      <button id="settingsButton" class="icon-button" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button id="logoutButton" class="icon-button hidden" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
     </div>
-    <div id="matchResult" class="hidden">
-      <h3>Match Analysis</h3>
-      <div id="matchScore"></div>
-    </div>
-    <button id="settingsBtn" class="text-btn">Settings</button>
+  </div>
+  <div class="content">
+    <button id="scanButton" class="action-button hidden">
+      <i class="fas fa-search"></i>
+      Scan Job
+    </button>
   </div>
   <script src="popup.js"></script>
 </body>

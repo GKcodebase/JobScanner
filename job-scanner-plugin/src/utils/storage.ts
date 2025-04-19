@@ -1,4 +1,4 @@
-import { UserSettings } from '../types';
+import { UserSettings, UserStats } from '../types';
 
 export class StorageManager {
   static async saveSettings(settings: Partial<UserSettings>): Promise<void> {
@@ -36,5 +36,42 @@ export class StorageManager {
 
   static async clearUserData(): Promise<void> {
     await chrome.storage.local.remove('userData');
+  }
+
+  static async getStats(): Promise<UserStats | null> {
+    const result = await chrome.storage.local.get('userStats');
+    return result.userStats || null;
+  }
+
+  static async updateStats(stats: Partial<UserStats>): Promise<void> {
+    const currentStats = await this.getStats() || {
+      scans: 0,
+      atsChecks: 0,
+      lastUpdated: new Date().toISOString()
+    };
+
+    const updatedStats = {
+      ...currentStats,
+      ...stats,
+      lastUpdated: new Date().toISOString()
+    };
+
+    await chrome.storage.local.set({ userStats: updatedStats });
+  }
+
+  static async incrementStat(key: keyof UserStats): Promise<void> {
+    const stats = await this.getStats() || {
+      scans: 0,
+      atsChecks: 0,
+      lastUpdated: new Date().toISOString()
+    };
+
+    const updatedStats = {
+      ...stats,
+      [key]: (stats[key] as number) + 1,
+      lastUpdated: new Date().toISOString()
+    };
+
+    await chrome.storage.local.set({ userStats: updatedStats });
   }
 }

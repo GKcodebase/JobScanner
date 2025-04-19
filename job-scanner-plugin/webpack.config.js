@@ -7,7 +7,8 @@ module.exports = {
   entry: {
     background: './src/background/index.ts',
     popup: './src/popup/popup.ts',
-    content: './src/content/index.ts'
+    content: './src/content/index.ts',
+    settings: './src/settings/settings.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -20,6 +21,10 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   resolve: {
@@ -29,8 +34,24 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'public' },
-        { from: 'src/popup/popup.html' },
-        { from: 'src/popup/popup.css' }
+        { 
+          from: 'src/popup/popup.html',
+          to: 'popup.html'
+        },
+        { 
+          from: 'src/settings/settings.html',
+          to: 'settings.html'
+        },
+        { 
+          from: 'src/popup/popup.css',
+          to: 'popup.css'
+        },
+        { 
+          from: 'src/settings/settings.css',
+          to: 'settings.css'
+        },
+        { from: 'src/components', to: 'components' },
+        { from: 'src/styles', to: 'styles' }
       ],
     }),
     new Dotenv()

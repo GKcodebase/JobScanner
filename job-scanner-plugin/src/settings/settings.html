@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Settings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../styles/shared.css">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div id="headerContainer">
+    <div class="header">
+      <div class="user-profile">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="user-email" id="userEmail"></span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="auth-container" id="authContainer">
+    <div class="login-prompt">
+      <i class="fas fa-user-circle"></i>
+      <h2>Please Login</h2>
+      <button id="loginButton" class="primary-btn">
+        <i class="fab fa-google"></i>
+        Login
+      </button>
+    </div>
+  </div>
+
+  <div class="settings-container" id="settingsContainer">
+    <nav class="settings-nav">
+      <button class="nav-item active" data-section="api" title="API Settings">
+        <i class="fas fa-key"></i>
+      </button>
+      <button class="nav-item" data-section="resume" title="Resume">
+        <i class="fas fa-file-pdf"></i>
+      </button>
+      <button class="nav-item" data-section="profile" title="Profile">
+        <i class="fas fa-user"></i>
+      </button>
+    </nav>
+
+    <div class="settings-content">
+      <section id="api-section" class="section">
+        <h2>API Configuration</h2>
+        <div class="form-group">
+          <label for="geminiApiKey">Gemini API Key</label>
+          <input type="password" id="geminiApiKey" placeholder="Enter API key">
+        </div>
+        <div class="form-group">
+          <label for="modelSelection">Model</label>
+          <select id="modelSelection">
+            <option value="gemini-pro">Gemini Pro</option>
+            <option value="gemini-pro-vision">Gemini Pro Vision</option>
+          </select>
+        </div>
+      </section>
+
+      <section id="resume-section" class="section hidden">
+        <h2>Resume</h2>
+        <div class="form-group">
+          <label for="resumeUpload">Upload PDF Resume</label>
+          <input type="file" id="resumeUpload" accept=".pdf">
+        </div>
+        <div id="currentResume" class="hidden">
+          <p>Current: <span id="resumeName">None</span></p>
+        </div>
+      </section>
+
+      <section id="profile-section" class="section hidden">
+        <h2>Profile</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span id="scanCount">0</span>
+            <label>Scans</label>
+          </div>
+          <div class="stat-item">
+            <span id="atsCount">0</span>
+            <label>ATS Checks</label>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>

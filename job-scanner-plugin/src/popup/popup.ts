@@ -1,4 +1,3 @@
-import { GeminiAPI } from '../api/gemini';
 import { auth } from '../lib/firebase-config';
 import { loginWithGoogle, logoutUser, initializeAuth } from '../services/firebase-service';
 import { logCustomEvent } from '../services/custom-analytics';
@@ -6,65 +5,112 @@ import { ContentScriptResponse } from '../types';
 import { GoogleAPILoader } from '../utils/google-api-loader';
 import { StorageManager } from '../utils/storage';
 
-// Add connection error handling
-let port = chrome.runtime.connect({ name: 'popup' });
+interface AuthUser {
+  email: string | null;
+}
 
-port.onDisconnect.addListener(() => {
-  console.error('Connection failed - attempting reconnect');
-  port = chrome.runtime.connect({ name: 'popup' });
-});
+const updateUserAvatar = (email: string) => {
+  const avatar = document.getElementById('userAvatar');
+  if (avatar) {
+    avatar.textContent = email.charAt(0).toUpperCase();
+  }
+};
 
-document.addEventListener('DOMContentLoaded', async () => {
+const openSidePanel = async (): Promise<void> => {
   try {
-    await GoogleAPILoader.getInstance().initialize();
-    const userInfo = document.querySelector('.user-info') as HTMLDivElement;
-    const userEmail = document.getElementById('userEmail') as HTMLSpanElement;
-    const loginButton = document.getElementById('loginButton');
-    const logoutButton = document.getElementById('logoutButton');
-    const scanButton = document.getElementById('scanButton');
-
-    // Initialize auth listener
-    initializeAuth();
-
-    // Check stored user data
-    const userData = await StorageManager.getUserData();
-    if (userData) {
-      userInfo.classList.remove('hidden');
-      loginButton?.classList.add('hidden');
-      scanButton?.classList.remove('hidden');
-      userEmail.textContent = userData.email || 'Logged in user';
-    } else {
-      userInfo.classList.add('hidden');
-      loginButton?.classList.remove('hidden');
-      scanButton?.classList.add('hidden');
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const currentWindow = await chrome.windows.getCurrent();
+    
+    if (!currentWindow.id) {
+      throw new Error('Window ID is undefined');
     }
 
-    loginButton?.addEventListener('click', async () => {
-      try {
-        await loginWithGoogle();
-      } catch (error) {
-        console.error('Login failed:', error);
-      }
+    // Try to open side panel with both tab and window IDs
+    await chrome.sidePanel.open({
+      tabId: tab?.id,
+      windowId: currentWindow.id
     });
-
-    logoutButton?.addEventListener('click', async () => {
-      try {
-        await logoutUser();
-        userInfo.classList.add('hidden');
-        loginButton?.classList.remove('hidden');
-        scanButton?.classList.add('hidden');
-      } catch (error) {
-        console.error('Logout failed:', error);
-      }
-    });
-
-    scanButton?.addEventListener('click', handleScan);
   } catch (error) {
-    console.error('Failed to initialize Google API:', error);
+    console.error('Failed to open side panel:', error);
+    // Fallback to just window ID if tab-specific fails
+    const currentWindow = await chrome.windows.getCurrent();
+    if (currentWindow.id) {
+      await chrome.sidePanel.open({
+        windowId: currentWindow.id
+      });
+    }
   }
-});
+};
 
-async function handleScan() {
+const handleLogout = async (): Promise<void> => {
+  try {
+    await logoutUser();
+    await StorageManager.clearUserData(); // Clear stored user data
+    updateUIForAuthState(null); // Update UI immediately
+    await logCustomEvent('user_logged_out');
+    window.close(); // Close popup after logout
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
+
+const loadHeader = async (): Promise<void> => {
+  const headerContainer = document.getElementById('headerContainer');
+  if (!headerContainer) return;
+
+  try {
+    const response = await fetch(chrome.runtime.getURL('components/header.html'));
+    const html = await response.text();
+    headerContainer.innerHTML = html;
+
+    // Set up settings button
+    const settingsButton = document.getElementById('settingsButton');
+    settingsButton?.addEventListener('click', async () => {
+      try {
+        await openSidePanel();
+        window.close(); // Close popup after opening side panel
+      } catch (error) {
+        console.error('Failed to open settings:', error);
+      }
+    });
+
+    // Set up logout button
+    const logoutButton = document.getElementById('logoutButton');
+    logoutButton?.addEventListener('click', handleLogout);
+
+    // Update UI based on current auth state
+    const userData = await StorageManager.getUserData();
+    updateUIForAuthState(userData);
+  } catch (error) {
+    console.error('Failed to load header:', error);
+  }
+};
+
+const updateUIForAuthState = (user: AuthUser | null): void => {
+  const userInfo = document.getElementById('userInfo');
+  const loginButton = document.getElementById('loginButton');
+  const logoutButton = document.getElementById('logoutButton');
+  const scanButton = document.getElementById('scanButton');
+  const userEmail = document.getElementById('userEmail');
+  const userAvatar = document.getElementById('userAvatar');
+
+  if (user?.email) {
+    userInfo?.classList.remove('hidden');
+    loginButton?.classList.add('hidden');
+    logoutButton?.classList.remove('hidden');
+    scanButton?.classList.remove('hidden');
+    
+    if (userEmail) userEmail.textContent = user.email;
+    if (userAvatar) userAvatar.textContent = user.email.charAt(0).toUpperCase();
+  } else {
+    userInfo?.classList.add('hidden');
+    loginButton?.classList.remove('hidden');
+    logoutButton?.classList.add('hidden');
+    scanButton?.classList.add('hidden');
+  }
+};
+
+const handleScan = async (): Promise<void> => {
   try {
     if (!auth.currentUser) {
       throw new Error('Please login first');
@@ -73,7 +119,6 @@ async function handleScan() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) throw new Error('No active tab found');
 
-    // Add timeout for content script injection
     const injectionPromise = chrome.scripting.executeScript({
       target: { tabId: tab.id },
       files: ['content.js']
@@ -85,7 +130,6 @@ async function handleScan() {
 
     await Promise.race([injectionPromise, timeoutPromise]);
 
-    // Add retry logic for message sending
     let retries = 3;
     let response: ContentScriptResponse | null = null;
     
@@ -116,4 +160,44 @@ async function handleScan() {
       timestamp: new Date().toISOString()
     });
   }
-}
+};
+
+// Initialize popup
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await GoogleAPILoader.getInstance().initialize();
+    
+    const loginButton = document.getElementById('loginButton');
+    const scanButton = document.getElementById('scanButton');
+    const settingsButton = document.getElementById('settingsButton');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // Initialize auth
+    initializeAuth();
+    const userData = await StorageManager.getUserData();
+    updateUIForAuthState(userData);
+
+    // Set up auth state listener
+    auth.onAuthStateChanged((user) => {
+      updateUIForAuthState(user ? { email: user.email } : null);
+    });
+
+    // Set up event listeners
+    loginButton?.addEventListener('click', async () => {
+      try {
+        await loginWithGoogle();
+      } catch (error) {
+        console.error('Login failed:', error);
+      }
+    });
+
+    scanButton?.addEventListener('click', handleScan);
+    settingsButton?.addEventListener('click', openSidePanel);
+    logoutButton?.addEventListener('click', handleLogout);
+
+    // Load header last
+    await loadHeader();
+  } catch (error) {
+    console.error('Failed to initialize popup:', error);
+  }
+});

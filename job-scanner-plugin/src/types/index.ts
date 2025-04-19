@@ -24,10 +24,17 @@ export interface ATSAnalysis {
 export interface UserSettings {
   geminiApiKey: string;
   resumeData?: ArrayBuffer;
+  modelSelection: string;
 }
 
 export interface ContentScriptResponse {
   success: boolean;
   data?: string;
   error?: string;
+}
+
+export interface UserStats {
+  scans: number;
+  atsChecks: number;
+  lastUpdated: string;
 }
